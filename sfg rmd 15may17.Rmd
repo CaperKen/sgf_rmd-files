@@ -11,6 +11,7 @@ output:
 ##Findings from Survey 2
 ##Preliminary findings, 8:30am 15may17
 
+These changes are being made in github on 21aug20.
 
 ```{r "setup", include=FALSE, echo=FALSE, message=FALSE}
 require(sjPlot)
