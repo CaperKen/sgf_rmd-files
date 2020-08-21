@@ -1,0 +1,171 @@
+---
+title: "Smart Grid Fund Survey 2 Findings 15may17"
+author: "Ken Deal & Dean Mountain"
+date: "15may17"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+#Smart Grid Fund Electricity Pilot
+##Findings from Survey 2
+##Preliminary findings, 8:30am 15may17
+
+
+```{r "setup", include=FALSE, echo=FALSE, message=FALSE}
+require(sjPlot)
+require(sjmisc)
+require(dplyr)
+require(ggplot2)
+require(knitr)
+opts_knit$set(root.dir ="E:/Sawtooth/SSI Web/FlexPlan_26apr17/Export_15may17/RawExport_15may17")
+
+```
+
+```{r  include=FALSE, echo=FALSE, message=FALSE}
+sgf <- read.csv("RawExport_15may17.csv",  sep=",", header=TRUE) # read the data file
+dim(sgf)
+#head(sgf,3) # view 1st 3 rows of data
+sgf[1:3,1:10]
+names(sgf)[1] <- "sys_RespNum"
+sgf_cov<- sgf[, c(1,4,9, 19:25, 71:82, 311:428, 453:598 )]
+dim(sgf_cov)
+#describe(sgf_cov)
+write.csv(sgf_cov,"sgf_cov.csv",row.names=FALSE)
+sgf_elec_opinions<- sgf[,c(1,4,599)]
+write.csv(sgf_elec_opinions,"sgf_elec_opinions.csv",row.names=FALSE)
+sgf_survey_opinions<- sgf[,c(1,4,600)]
+write.csv(sgf_survey_opinions,"sgf_survey_opinions.csv",row.names=FALSE)
+str(sgf_cov)
+
+```
+
+```{r include=FALSE, echo=FALSE, message=FALSE}
+sgf_cov$egroup  <- recode_factor( sgf_cov$egroup , 
+                  `1`='Experiment: No feedback', 
+                  `2`='Experiment: IHD, No Energate', 
+                  `3`='Experiment: IHD + PlotWatt + No Energate',
+                  `4`='Control: No feedback',
+                  `5`='Control: IHD + No Energate',
+                  `6`='Control: IHD + PlotWatt + No Energate')
+sgf_cov$group  <- recode_factor( sgf_cov$group , 
+                  `1`='Experiment: No feedback', 
+                  `2`='Experiment: IHD, No Energate', 
+                  `3`='Experiment: IHD + PlotWatt + No Energate',
+                  `4`='Control: No feedback',
+                  `5`='Control: IHD + No Energate',
+                  `6`='Control: IHD + PlotWatt + No Energate',
+                  `9`='Dropped out of pilot')
+sgf_cov[,7]  <- recode_factor( sgf_cov[,7] , 
+                  `1`='R1', 
+                  `2`='R2', 
+                  `3`='R3', 
+                  .default = NULL, .missing = NULL)
+sgf_cov[,10]  <- recode_factor( sgf_cov[,10] , 
+                 `1`='H1 TOU', 
+                 `2`='TOU1', 
+                 `3`='TOU2',
+                 `4`='TOU3',
+                 `5`='TOU4',
+                 `6`='TOU5',
+                 `7`='TOU6',
+                 `8`='VPP/CPP7',
+                 `9`='VPP/CPP8',
+                 `10`='VPP/CPP9',
+                 `11`='VPP/CPP10',
+                 `12`='RTP11',
+                 `13`='RTP12', 
+                 .default = NULL, .missing = NULL)
+
+```
+###Tables of electricity and sample design categories
+```{r eval=FALSE, echo=FALSE, message=FALSE}
+sjt.frq(sgf_cov$egroup, var.labels=c("egroup"))
+```
+`r sjt.frq(sgf_cov$egroup, var.labels=c("egroup"), no.output=TRUE)$knitr`
+
+
+```{r eval=FALSE, echo=FALSE, message=FALSE}
+sjt.frq(sgf_cov$group, var.labels=c("group"))
+```
+`r sjt.frq(sgf_cov$group, var.labels=c("group"), no.output=TRUE)$knitr`  
+
+Group by e-group    
+
+```{r eval=FALSE, echo=FALSE, message=FALSE}
+sjt.xtab(sgf_cov[,6], sgf_cov[,8], var.labels=c("group", "egroup"))
+```
+`r sjt.xtab(sgf_cov[,6], sgf_cov[,8], var.labels=c("group", "egroup"), no.output=TRUE)$knitr`
+
+
+
+Rate Groups  
+***
+```{r eval=FALSE, echo=FALSE, message=FALSE}
+sjt.frq(sgf_cov[,7], var.labels=c("rategroup"))
+```
+`r sjt.frq(sgf_cov[,7], var.labels=c("rategroup"), no.output=TRUE)$knitr`  
+  
+Treatment Groups
+***
+```{r eval=FALSE, echo=FALSE, message=FALSE}
+sjt.frq(sgf_cov[,10], var.labels=c("treatment"), show.summary=TRUE)
+```
+`r sjt.frq(sgf_cov[,10], var.labels=c("treatment"), show.summary=TRUE, no.output=TRUE)$knitr`
+
+#### Customer responses to survey questions
+
+```{r  echo=FALSE, message=FALSE}
+sgf_cov[,11]  <- recode_factor( sgf_cov[,11] , 
+                               `1`='Less electricity used', 
+                               `2`='About the same electricity', 
+                               `3`='More electricity used', 
+                               .default = NULL, .missing = NULL)
+```
+```{r eval=FALSE, echo=FALSE, message=FALSE}
+sjt.frq(sgf_cov[,11], var.labels=c("Conservation Efforts"))
+```
+`r sjt.frq(sgf_cov[,11], var.labels=c("Conservation Efforts"), no.output=TRUE)$knitr`  
+
+Conservation efforts by group    
+
+```{r eval=FALSE, echo=FALSE, message=FALSE}
+sjt.xtab(sgf_cov[,11], sgf_cov[,6], 
+         var.labels=c("Conservation Efforts", "group"),
+         show.col.prc=TRUE, tdcol.col="black",
+         show.obs=TRUE, show.summary = TRUE,
+         emph.total=TRUE, emph.color = "lightblue")
+```
+`r sjt.xtab(sgf_cov[,11], sgf_cov[,6], 
+         var.labels=c("Conservation Efforts", "group"),
+         show.col.prc=TRUE, tdcol.col="black",
+         show.obs=TRUE, show.summary = TRUE,
+         emph.total=TRUE, emph.color = "lightblue", no.output=TRUE)$knitr`  
+
+Shifting electricity  
+```{r  echo=FALSE, message=FALSE}
+sgf_cov[,12]  <- recode_factor( sgf_cov[,12] , 
+              `1`='Yes I have shifted electricity usage', 
+              `2`='No I have not shifted electricity usage', 
+                                .default = NULL, .missing = NULL)
+```
+```{r eval=FALSE, echo=FALSE, message=FALSE}
+sjt.frq(sgf_cov[,12], var.labels=c("Shifting Efforts"))
+```
+`r sjt.frq(sgf_cov[,12], var.labels=c("Shifting Efforts"), no.output=TRUE)$knitr`  
+
+Shifting efforts by group  
+
+```{r eval=FALSE, echo=FALSE, message=FALSE}
+sjt.xtab(sgf_cov[,12], sgf_cov[,6], 
+         var.labels=c("Shifting Efforts", "group"),
+         show.col.prc=TRUE, tdcol.col="black",
+         show.obs=TRUE, show.summary = TRUE,
+         emph.total=TRUE, emph.color = "lightblue")
+```
+`r sjt.xtab(sgf_cov[,12], sgf_cov[,6], 
+         var.labels=c("Shifting Efforts", "group"),
+         show.col.prc=TRUE, tdcol.col="black",
+         show.obs=TRUE, show.summary = TRUE,
+         emph.total=TRUE, emph.color = "lightblue", no.output=TRUE)$knitr`
+
